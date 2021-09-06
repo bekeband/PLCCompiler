@@ -8,7 +8,11 @@
 #include <stdlib.h>
 #pragma warning(disable : 4996)
 
+#define LOG_MESSAGES
+
 #define MAX_INPUT_BUFFER_SIZE 512
+#define MAX_COMMAND_TOKEN_SIZE	24
+#define MAX_DATA_TOKEN_SIZE	24
 
 typedef int (*t_commFunc)();
 
@@ -16,12 +20,12 @@ typedef int (*t_dataFunc)(int shift);
 
 
 struct commStruct {
-	char comm[24];
+	const char comm[MAX_COMMAND_TOKEN_SIZE];
 	t_commFunc commFunct;
 };
 
 struct dataStruct {
-	char comm[24];
+	char comm[MAX_DATA_TOKEN_SIZE];
 	t_dataFunc dataFunct;
 	int intData;
 };
@@ -30,8 +34,9 @@ int loadCommand();
 int byteData(int dataShift);
 int wordData(int dataShift);
 int bitData(int dataShift);
+int callCommand();
 
-struct commStruct commStructs[] = {	{ "ld", loadCommand }, {NULL, NULL} };
+struct commStruct commStructs[] = { { "ld", loadCommand }, {"call", callCommand },  {NULL, NULL}};
 
 struct dataStruct dataStructs[] = {	{"in", bitData, INPUTS_SHIFT}, 
 										{"inb", byteData, INPUTS_SHIFT},
@@ -68,8 +73,26 @@ int MakeTestProgram(const char* fileName, const char* outBuffer) {
 */
 
 int loadCommand() {
+
+#ifdef LOG_MESSAGES
+	fprintf(stdout, "loadCommand()");
+#endif // LOG_MESSAGES
+
 	return 0;
 }
+
+/*
+*/
+
+int callCommand() {
+
+#ifdef LOG_MESSAGES
+	fprintf(stdout, "callCommand()");
+#endif // LOG_MESSAGES
+
+	return 0;
+}
+
 
 /*
 */
@@ -92,7 +115,7 @@ int wordData(int dataShift) {
 	return 0;
 }
 
-/* convertLoadLine(char* inputLine) 
+/* char* convertRawLine(char* inputLine) 
 */
 char* convertRawLine(char* inputLine) {
 
@@ -102,25 +125,27 @@ char* convertRawLine(char* inputLine) {
 
 	/* get the first token */
 	token = strtok(inputLine, " ");
-	
-	while (commStructs[i++].commFunct != NULL) {
-		if (strcmp(commStructs[i].comm, token)) {
-			commandFunct = commStructs[i].commFunct;
-			i++;
+
+	while ((commStructs[i].commFunct != NULL)) {
+		if (!strcmp(commStructs[i].comm, token)) {
+			if ((commandFunct = commStructs[i].commFunct) != NULL) {
+				commandFunct();
+			}
 			break;
 		}
+		i++;
 	}
 
-	if (commandFunct != NULL) {
-
-	}
+/*	if (commandFunct != NULL) {
+		
+	}*/
 
 	/* walk through other tokens */
-	while (token != NULL) {
+/*	while (token != NULL) {
 		printf(" %s\n", token);
 		token = strtok(NULL, " ");
-	}
-
+	}*/
+	printf(" \n");
 	return NULL;
 }
 
@@ -135,7 +160,8 @@ int main(int argc, char* argv[])
 		inputHandle = fopen(inputFileName, "r");
 	}
 	else {
-		strcpy(inputFileName, "C:\\Users\\Beke András\\source\\repos\\PLCCompiler\\test.plcfile");
+
+		strcpy(inputFileName, "C:\\Users\\bekeband\\repos\\PLCCompiler\\test.plcfile");
 		inputHandle = fopen(inputFileName, "r");
 //		inputHandle = stdin;
 	}
@@ -152,8 +178,9 @@ int main(int argc, char* argv[])
 		convertRawLine(inputBuffer);
 
 //		puts(inputBuffer);
-		printf("Line %d: %s", linenumb++, inputBuffer);
-
+#ifdef LOG_MESSAGES
+		printf("Line %d: ", linenumb++);
+#endif
 	}
 
 	fclose(inputHandle);

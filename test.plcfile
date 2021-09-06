@@ -1,3 +1,4 @@
+
 ld  in.1
 ld  in.2
 ld  in.3
@@ -11,9 +12,7 @@ ld  mw.47
 ld  mw.22
 ld  mw.89
 ld  mw.34
-
-call BufferController_4C
-
+call func.88
 pop m.123
 pop m.012
 pop m.1
